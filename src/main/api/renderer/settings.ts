@@ -1,6 +1,7 @@
 import { app, globalShortcut, ipcMain, nativeTheme } from 'electron'
 import { getCurrentShortcut, updateShortcut } from '../../index.js'
 
+import doubleTapManager from '../../core/doubleTapManager.js'
 import proxyManager from '../../managers/proxyManager.js'
 import windowManager from '../../managers/windowManager.js'
 import databaseAPI from '../shared/database'
@@ -112,16 +113,7 @@ export class SettingsAPI {
         for (const shortcut of shortcuts) {
           if (shortcut.enabled && shortcut.shortcut && shortcut.target) {
             try {
-              const success = globalShortcut.register(shortcut.shortcut, () => {
-                console.log(`全局快捷键触发: ${shortcut.shortcut} -> ${shortcut.target}`)
-                this.handleGlobalShortcut(shortcut.target)
-              })
-
-              if (success) {
-                console.log(`成功注册全局快捷键: ${shortcut.shortcut} -> ${shortcut.target}`)
-              } else {
-                console.warn(`全局快捷键注册失败: ${shortcut.shortcut}`)
-              }
+              await this.registerGlobalShortcut(shortcut.shortcut, shortcut.target)
             } catch (error) {
               console.error(`注册全局快捷键失败: ${shortcut.shortcut}`, error)
             }
@@ -174,9 +166,30 @@ export class SettingsAPI {
     return getCurrentShortcut()
   }
 
+  // 判断是否为双击修饰键快捷键（如 "Double+Command"）
+  private isDoubleTapShortcut(shortcut: string): boolean {
+    return shortcut.startsWith('Double+')
+  }
+
+  // 从双击快捷键字符串中提取修饰键名称
+  private getDoubleTapModifier(shortcut: string): string {
+    return shortcut.replace('Double+', '')
+  }
+
   // 注册全局快捷键
   private async registerGlobalShortcut(shortcut: string, target: string): Promise<any> {
     try {
+      if (this.isDoubleTapShortcut(shortcut)) {
+        const modifier = this.getDoubleTapModifier(shortcut)
+        doubleTapManager.unregister(modifier)
+        doubleTapManager.register(modifier, () => {
+          console.log(`双击修饰键触发: ${shortcut} -> ${target}`)
+          this.handleGlobalShortcut(target)
+        })
+        console.log(`成功注册双击修饰键快捷键: ${shortcut} -> ${target}`)
+        return { success: true }
+      }
+
       // 先尝试取消注册该快捷键（如果已被注册），避免重复注册导致失败
       globalShortcut.unregister(shortcut)
 
@@ -200,6 +213,13 @@ export class SettingsAPI {
   // 注销全局快捷键
   private async unregisterGlobalShortcut(shortcut: string): Promise<any> {
     try {
+      if (this.isDoubleTapShortcut(shortcut)) {
+        const modifier = this.getDoubleTapModifier(shortcut)
+        doubleTapManager.unregister(modifier)
+        console.log(`成功注销双击修饰键快捷键: ${shortcut}`)
+        return { success: true }
+      }
+
       globalShortcut.unregister(shortcut)
       console.log(`成功注销全局快捷键: ${shortcut}`)
       return { success: true }

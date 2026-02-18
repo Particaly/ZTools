@@ -12,7 +12,7 @@
         <div class="shortcut-list">
           <div v-for="shortcut in filteredShortcuts" :key="shortcut.id" class="card shortcut-item">
             <div class="shortcut-info">
-              <div class="shortcut-key-display">{{ shortcut.shortcut }}</div>
+              <div class="shortcut-key-display">{{ formatShortcutDisplay(shortcut.shortcut) }}</div>
               <div class="shortcut-desc">{{ shortcut.target }}</div>
             </div>
 
@@ -144,6 +144,13 @@ watch(
   },
   { immediate: true }
 )
+
+function formatShortcutDisplay(shortcut: string): string {
+  if (shortcut?.startsWith('Double+')) {
+    return `${shortcut.replace('Double+', '')} × 2`
+  }
+  return shortcut
+}
 
 // 加载快捷键列表
 async function loadShortcuts(): Promise<void> {
