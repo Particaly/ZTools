@@ -24,7 +24,7 @@
         v-if="activeMenu === 'plugins'"
         :search-query="props.searchQuery"
         :auto-open-plugin-name="autoOpenPluginName"
-        @auto-open-consumed="autoOpenPluginName = ''"
+        @auto-open-consumed="handleAutoOpenConsumed"
       />
 
       <!-- 插件市场 -->
@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import Icon from '../common/Icon.vue'
 import AiModels from './AiModels.vue'
 import AllCommands from './AllCommands.vue'
@@ -98,6 +98,7 @@ interface Props {
   activePage: string
   searchQuery?: string
   installPluginFilePath?: string
+  autoOpenPluginName?: string
 }
 
 const props = defineProps<Props>()
@@ -105,6 +106,7 @@ const props = defineProps<Props>()
 // Emits
 const emit = defineEmits<{
   'update:activePage': [value: string]
+  'auto-open-consumed': []
 }>()
 
 // 菜单项类型
@@ -151,8 +153,25 @@ const activeMenu = computed({
 // 全局快捷键页面的预填目标指令（从 AllCommands 导航过来时使用）
 const shortcutAutoAddTarget = ref('')
 
-// 安装成功后自动打开的插件名称
+// 自动打开的插件名称（合并外部传入和内部设置两个来源）
 const autoOpenPluginName = ref('')
+
+// 监听外部传入的 autoOpenPluginName prop
+watch(
+  () => props.autoOpenPluginName,
+  (name) => {
+    if (name) {
+      autoOpenPluginName.value = name
+    }
+  },
+  { immediate: true }
+)
+
+// 处理 PluginCenter 消费完 autoOpenPluginName 后的清理
+function handleAutoOpenConsumed(): void {
+  autoOpenPluginName.value = ''
+  emit('auto-open-consumed')
+}
 
 // 处理子组件导航请求
 function handleNavigate(page: string, params?: Record<string, string>): void {

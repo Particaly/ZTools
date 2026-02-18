@@ -516,6 +516,11 @@ async function handleAppContextMenu(
         }
       ]
     })
+
+    menuItems.push({
+      id: `view-plugin-detail:${app.pluginName}`,
+      label: '查看插件详情'
+    })
   }
 
   await window.ztools.showContextMenu(menuItems)
@@ -766,6 +771,31 @@ async function handleContextMenuCommand(command: string): Promise<void> {
       console.log('已更新 outKillPlugin 配置:', outKillPlugins)
     } catch (error: any) {
       console.error('切换自动结束配置失败:', error)
+    }
+  } else if (command.startsWith('view-plugin-detail:')) {
+    const pluginName = command.replace('view-plugin-detail:', '')
+    try {
+      // 从 commandDataStore 中查找设置插件（已安装插件功能）的路径
+      const settingCmd = commandDataStore.commands.find(
+        (c) => c.type === 'plugin' && c.pluginName === 'setting' && c.featureCode === 'plugins'
+      )
+      if (settingCmd) {
+        await window.ztools.launch({
+          path: settingCmd.path,
+          type: 'plugin',
+          featureCode: 'plugins',
+          name: '已安装插件',
+          cmdType: 'text',
+          param: {
+            payload: pluginName,
+            type: 'text'
+          }
+        })
+      } else {
+        console.error('未找到设置插件的已安装插件指令')
+      }
+    } catch (error) {
+      console.error('查看插件详情失败:', error)
     }
   } else if (command.startsWith('toggle-auto-detach:')) {
     const pluginName = command.replace('toggle-auto-detach:', '')

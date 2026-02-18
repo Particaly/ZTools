@@ -13,6 +13,8 @@ const activePage = ref<string>('general')
 const searchQuery = ref<string>('')
 // 安装插件文件路径
 const installPluginFilePath = ref<string>('')
+// 自动打开的插件详情名称（从外部启动参数传入）
+const autoOpenPluginName = ref<string>('')
 
 // 各页面搜索框 placeholder，未列出的页面不显示搜索框
 const pagePlaceholders: Record<string, string> = {
@@ -71,6 +73,11 @@ onMounted(() => {
     // 根据页面决定是否显示搜索框
     updateSubInput(targetPage)
 
+    // 已安装插件：从 payload 中提取要自动打开详情的插件名称
+    if (action.code === 'plugins' && action.payload) {
+      autoOpenPluginName.value = action.payload
+    }
+
     // 插件市场搜索：将用户输入的文本预填到搜索框
     if (action.code === 'plugin-market-search' && action.payload) {
       searchQuery.value = action.payload
@@ -123,6 +130,8 @@ onMounted(() => {
     v-model:active-page="activePage"
     :search-query="searchQuery"
     :install-plugin-file-path="installPluginFilePath"
+    :auto-open-plugin-name="autoOpenPluginName"
+    @auto-open-consumed="autoOpenPluginName = ''"
   />
   <!-- 全局Toast组件 -->
   <Toast
