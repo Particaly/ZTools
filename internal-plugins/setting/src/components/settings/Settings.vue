@@ -283,4 +283,7 @@ function handlePluginInstalled(pluginName: string): void {
   flex: 1;
   overflow: hidden; /* 去除滚动，交给各个子组件处理 */
 }
+.settings-sidebar::-webkit-scrollbar {
+  width: 0px !important;
+}
 </style>
