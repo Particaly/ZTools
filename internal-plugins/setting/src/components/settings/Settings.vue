@@ -152,8 +152,8 @@ const menuItems: MenuItem[] = [
   { id: 'local-launch', icon: 'folder', label: '本地启动' },
   { id: 'sync', icon: 'cloud', label: 'WebDAV 同步' },
   { id: 'debug', icon: 'terminal', label: '调试日志' },
-  { id: 'about', icon: 'info', label: '关于' },
-  { id: 'http-service', icon: 'monitor', label: 'HTTP 服务' }
+  { id: 'http-service', icon: 'monitor', label: 'HTTP 服务' },
+  { id: 'about', icon: 'info', label: '关于' }
 ]
 
 // 使用 computed 实现双向绑定
